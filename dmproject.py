@@ -5,17 +5,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from mlxtend.frequent_patterns import apriori, association_rules # Geeks for geeks
-from sklearn import preprocessing
+from sklearn import preprocessing, tree
 from sklearn.tree import DecisionTreeClassifier # Import Decision Tree Classifier
 from sklearn.model_selection import train_test_split, cross_val_score, cross_val_predict # Import train_test_split functionn
 from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.metrics import roc_auc_score, confusion_matrix, precision_score, recall_score, f1_score, accuracy_score, roc_curve
-from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 
 from sklearn.tree import export_graphviz
 from IPython.display import Image  
-from sklearn import tree
 import graphviz
 
 sns.set()
@@ -265,51 +264,48 @@ st.text(featureScores)  #print 10 best features
 
 feat_cols = list(featureScores.index.values)
 
-# # Boruta
-# st.subheader("Boruta Features")
+# Boruta
+st.subheader("Boruta Features")
 
-# def ranking(ranks, names, order=1):
-#     minmax = MinMaxScaler()
-#     ranks = minmax.fit_transform(order*np.array([ranks]).T).T[0]
-#     ranks = map(lambda x: round(x,2), ranks)
-#     return dict(zip(names, ranks))
+def ranking(ranks, names, order=1):
+    minmax = MinMaxScaler()
+    ranks = minmax.fit_transform(order*np.array([ranks]).T).T[0]
+    ranks = map(lambda x: round(x,2), ranks)
+    return dict(zip(names, ranks))
 
 
-from sklearn.ensemble import RandomForestClassifier
-# from boruta import BorutaPy
+from boruta import BorutaPy
 
-# # For random forest, class weight should be "balanced" and maximum of tree depth is 5.
-# # set random_state = 1
-# # set n_jobs=-1
-# # n_estimators="auto"
+# For random forest, class weight should be "balanced" and maximum of tree depth is 5.
+# set random_state = 1
+# set n_jobs=-1
+# n_estimators="auto"
 
-# # sort the boruta score descending
+# sort the boruta score descending
 
-# rf = RandomForestClassifier(n_jobs=-1, class_weight="balanced", max_depth = 5)
+rf = RandomForestClassifier(n_jobs=-1, class_weight="balanced", max_depth = 5)
 
-# feat_selector = BorutaPy(rf, n_estimators = "auto", random_state = 1)
+feat_selector = BorutaPy(rf, n_estimators = "auto", random_state = 1)
 
-# # X = df_insurance.iloc[:, 1:-1]  #independent columns
-# # y = df_insurance.iloc[:, -1]    #target column i.e Purchase Plan
+# X = df_insurance.iloc[:, 1:-1]  #independent columns
+# y = df_insurance.iloc[:, -1]    #target column i.e Purchase Plan
 
-# feat_selector = feat_selector.fit(X.values, y.values.ravel())
+feat_selector = feat_selector.fit(X.values, y.values.ravel())
 
-# colnames = X.columns
-# boruta_score = ranking(list(map(float, feat_selector.ranking_)), colnames, order=-1)
-# boruta_score = pd.DataFrame(list(boruta_score.items()), columns=['Features', 'Score'])
+colnames = X.columns
+boruta_score = ranking(list(map(float, feat_selector.ranking_)), colnames, order=-1)
+boruta_score = pd.DataFrame(list(boruta_score.items()), columns=['Features', 'Score'])
 
-# # sort the boruta score descending
-# boruta_score = boruta_score.sort_values("Score", ascending = False)
+# sort the boruta score descending
+boruta_score = boruta_score.sort_values("Score", ascending = False)
 
-# st.text('--------------Top 10--------------')
-# st.text(boruta_score.head(18))
+st.text('--------------Top 10--------------')
+st.text(boruta_score.head(18))
 
-# import seaborn as sns
-
-# sns.catplot(x="Score", y="Features", data = boruta_score, kind = "bar", 
-#                height=14, aspect=1.9, palette='coolwarm')
-# plt.title("Boruta all Features")
-# st.pyplot()
+sns.catplot(x="Score", y="Features", data = boruta_score, kind = "bar", 
+               height=14, aspect=1.9, palette='coolwarm')
+plt.title("Boruta all Features")
+st.pyplot()
 
 # RFECV
 st.subheader("RFECV")
@@ -467,20 +463,20 @@ plt.legend()
 st.pyplot()
 
 # Apriori
-# insurance1 = pd.get_dummies(insurance_)
+insurance1 = pd.get_dummies(insurance_)
 
-# for i in range(-6, 0):
-# 	st.subheader("Association Rule Mining: {}".format(insurance1.columns[i]))
-# 	insurance_PurchasedPlan1_HomeSafe = pd.concat([insurance1[insurance1.columns[4:-6]], insurance1[insurance1.columns[i]]], axis=1)
+for i in range(-6, 0):
+	st.subheader("Association Rule Mining: {}".format(insurance1.columns[i]))
+	insurance_PurchasedPlan1_HomeSafe = pd.concat([insurance1[insurance1.columns[4:-6]], insurance1[insurance1.columns[i]]], axis=1)
 
-# 	#Build model
-# 	frequent_itemsets = apriori(insurance_PurchasedPlan1_HomeSafe, min_support=0.05, use_colnames=True)
-# 	st.write(frequent_itemsets)
+	#Build model
+	frequent_itemsets = apriori(insurance_PurchasedPlan1_HomeSafe, min_support=0.05, use_colnames=True)
+	st.write(frequent_itemsets)
 
-# 	# Collecting the inferred rules in a dataframe 
-# 	rules = association_rules(frequent_itemsets, metric = "lift", min_threshold = 1) 
-# 	rules = rules.sort_values(['confidence', 'lift'], ascending = [False, False]) 
-# 	st.write(rules[rules['consequents'] == frozenset({insurance1.columns[i]})])
+	# Collecting the inferred rules in a dataframe 
+	rules = association_rules(frequent_itemsets, metric = "lift", min_threshold = 1) 
+	rules = rules.sort_values(['confidence', 'lift'], ascending = [False, False]) 
+	st.write(rules[rules['consequents'] == frozenset({insurance1.columns[i]})])
 
 
 

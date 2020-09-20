@@ -1,1 +1,2 @@
-web: sh setup.sh && streamlit run dmproject.py
+# Contents of Procfile
+web: streamlit run --server.enableCORS false --server.port 8502 dmproject.py
